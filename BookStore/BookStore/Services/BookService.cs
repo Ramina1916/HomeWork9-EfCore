@@ -2,6 +2,7 @@ using BookStore.Data;
 using BookStore.DTOs;
 using BookStore.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Metadata.Ecma335;
 
 namespace BookStore.Services;
 
@@ -29,25 +30,26 @@ public class BookService(BookStoreDbContext dbContext) : IBookService
     public async Task<(BookDto Book, bool Created)> AddAsync(CreateBookDto dto, CancellationToken cancellationToken = default)
     {
         var existingBook = await dbContext.Books
-            .AsNoTracking()
             .Where(book => book.Title == dto.Title ||
                 (dto.Isbn != null && book.Isbn == dto.Isbn))
-            .Select(book => new BookDto(
-                book.Id,
-                book.Title,
-                book.Isbn,
-                book.Description,
-                book.Price,
-                book.Stock,
-                book.PageCount,
-                book.PublishedYear,
-                book.CoverImageUrl,
-                book.CreatedAt))
             .FirstOrDefaultAsync(cancellationToken);
 
         if (existingBook is not null)
         {
-            return (existingBook, false);
+            existingBook.Stock++;
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            return (new BookDto(
+                existingBook.Id,
+                existingBook.Title,
+                existingBook.Isbn,
+                existingBook.Description,
+                existingBook.Price,
+                existingBook.Stock,
+                existingBook.PageCount,
+                existingBook.PublishedYear,
+                existingBook.CoverImageUrl,
+                existingBook.CreatedAt), false);
         }
 
         var book = new Book
@@ -66,15 +68,16 @@ public class BookService(BookStoreDbContext dbContext) : IBookService
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return (new BookDto(
-            book.Id,
-            book.Title,
-            book.Isbn,
-            book.Description,
-            book.Price,
-            book.Stock,
-            book.PageCount,
-            book.PublishedYear,
-            book.CoverImageUrl,
-            book.CreatedAt), true);
+        book.Id,
+        book.Title,
+        book.Isbn,
+        book.Description,
+        book.Price,
+        book.Stock,
+        book.PageCount,
+        book.PublishedYear,
+        book.CoverImageUrl,
+        book.CreatedAt), true);
     }
 }
+
