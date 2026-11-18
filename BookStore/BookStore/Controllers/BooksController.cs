@@ -17,6 +17,13 @@ public class BooksController(IBookService bookService) : ControllerBase
         return book is null ? NotFound() : Ok(book);
     }
 
+    [HttpGet("titles")]
+    public async Task<ActionResult<IReadOnlyList<string>>> GetTitles(CancellationToken cancellationToken)
+    {
+        var titles = await bookService.GetTitlesAsync(cancellationToken);
+        return Ok(titles);
+    }
+
     [HttpPost]
     public async Task<ActionResult<BookDto>> Add(CreateBookDto dto,CancellationToken cancellationToken)
     {
@@ -51,4 +58,5 @@ public class BooksController(IBookService bookService) : ControllerBase
             return Conflict("The book cannot be deleted because it is referenced by an order.");
         }
     }
+
 }

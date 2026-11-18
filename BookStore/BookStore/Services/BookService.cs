@@ -119,5 +119,14 @@ public class BookService(BookStoreDbContext dbContext) : IBookService
         return true;
     }
 
+    public async Task<IReadOnlyList<string>> GetTitlesAsync(CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Books
+            .AsNoTracking()
+            .Select(book => book.Title)
+            .ToListAsync(cancellationToken);
+    }
+
+
 }
 
