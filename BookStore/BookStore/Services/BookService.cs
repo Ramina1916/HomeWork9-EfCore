@@ -2,7 +2,6 @@ using BookStore.Data;
 using BookStore.DTOs;
 using BookStore.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Metadata.Ecma335;
 
 namespace BookStore.Services;
 
@@ -78,6 +77,30 @@ public class BookService(BookStoreDbContext dbContext) : IBookService
         book.PublishedYear,
         book.CoverImageUrl,
         book.CreatedAt), true);
+    }
+
+    public async Task<bool> UpdateAsync(int id, UpdateBookDto dto, CancellationToken cancellationToken = default)
+    {
+        var existingBook = await dbContext.Books
+            .Where(book => book.Id == id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (existingBook is null)
+        {
+            return false;
+        }
+
+        existingBook.Title = dto.Title;
+        existingBook.Isbn = dto.Isbn;
+        existingBook.Description = dto.Description;
+        existingBook.Price = dto.Price;
+        existingBook.Stock = dto.Stock!.Value;
+        existingBook.PageCount = dto.PageCount;
+        existingBook.PublishedYear = dto.PublishedYear;
+        existingBook.CoverImageUrl = dto.CoverImageUrl;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
     }
 }
 

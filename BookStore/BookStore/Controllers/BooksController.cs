@@ -29,4 +29,12 @@ public class BooksController(IBookService bookService) : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result.Book.Id }, result.Book);
     }
 
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Update(int id, UpdateBookDto dto, CancellationToken cancellationToken)
+    {
+        var updated = await bookService.UpdateAsync(id, dto, cancellationToken);
+
+        return updated ? NoContent() : NotFound();
+    }
+
 }
