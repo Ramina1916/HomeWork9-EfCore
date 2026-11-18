@@ -1,5 +1,6 @@
 using BookStore.Data;
 using BookStore.DTOs;
+using BookStore.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookStore.Services;
@@ -23,5 +24,57 @@ public class BookService(BookStoreDbContext dbContext) : IBookService
                 book.CoverImageUrl,
                 book.CreatedAt))
             .SingleOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<(BookDto Book, bool Created)> AddAsync(CreateBookDto dto, CancellationToken cancellationToken = default)
+    {
+        var existingBook = await dbContext.Books
+            .AsNoTracking()
+            .Where(book => book.Title == dto.Title ||
+                (dto.Isbn != null && book.Isbn == dto.Isbn))
+            .Select(book => new BookDto(
+                book.Id,
+                book.Title,
+                book.Isbn,
+                book.Description,
+                book.Price,
+                book.Stock,
+                book.PageCount,
+                book.PublishedYear,
+                book.CoverImageUrl,
+                book.CreatedAt))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (existingBook is not null)
+        {
+            return (existingBook, false);
+        }
+
+        var book = new Book
+        {
+            Title = dto.Title,
+            Isbn = dto.Isbn,
+            Description = dto.Description,
+            Price = dto.Price,
+            PageCount = dto.PageCount,
+            PublishedYear = dto.PublishedYear,
+            CoverImageUrl = dto.CoverImageUrl,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        dbContext.Books.Add(book);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return (new BookDto(
+            book.Id,
+            book.Title,
+            book.Isbn,
+            book.Description,
+            book.Price,
+            book.Stock,
+            book.PageCount,
+            book.PublishedYear,
+            book.CoverImageUrl,
+            book.CreatedAt), true);
     }
 }
