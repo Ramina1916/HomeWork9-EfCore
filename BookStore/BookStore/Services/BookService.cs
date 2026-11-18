@@ -102,5 +102,22 @@ public class BookService(BookStoreDbContext dbContext) : IBookService
         await dbContext.SaveChangesAsync(cancellationToken);
         return true;
     }
+
+    public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var book = await dbContext.Books
+            .FirstOrDefaultAsync(book => book.Id == id, cancellationToken);
+
+        if (book is null)
+        {
+            return false;
+        }
+
+        dbContext.Books.Remove(book);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return true;
+    }
+
 }
 

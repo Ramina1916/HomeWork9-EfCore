@@ -1,6 +1,7 @@
 using BookStore.DTOs;
 using BookStore.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookStore.Controllers;
 
@@ -37,4 +38,17 @@ public class BooksController(IBookService bookService) : ControllerBase
         return updated ? NoContent() : NotFound();
     }
 
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var deleteSucceeded = await bookService.DeleteAsync(id, cancellationToken);
+            return deleteSucceeded ? NoContent() : NotFound();
+        }
+        catch (DbUpdateException)
+        {
+            return Conflict("The book cannot be deleted because it is referenced by an order.");
+        }
+    }
 }
