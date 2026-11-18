@@ -1,4 +1,5 @@
 using BookStore.Data;
+using BookStore.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookStore
@@ -12,6 +13,7 @@ namespace BookStore
             // Add services to the container.
 
             builder.Services.AddControllers();
+            builder.Services.AddScoped<IBookService, BookService>();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
