@@ -9,5 +9,6 @@ namespace BookStore.Services
         Task<bool> UpdateAsync(int id, UpdateBookDto dto, CancellationToken cancellationToken = default);
         Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
         Task<IReadOnlyList<string>> GetTitlesAsync(CancellationToken cancellationToken = default);
+        Task<PagedResult<BookDto>> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default);
     }
 }

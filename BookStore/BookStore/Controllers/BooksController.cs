@@ -24,6 +24,24 @@ public class BooksController(IBookService bookService) : ControllerBase
         return Ok(titles);
     }
 
+    [HttpGet("paged")]
+    public async Task<ActionResult<PagedResult<BookDto>>> GetPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var result = await bookService.GetPagedAsync(
+                pageNumber,
+                pageSize,
+                cancellationToken);
+
+            return Ok(result);
+        }
+        catch (ArgumentOutOfRangeException exception)
+        {
+            return BadRequest(exception.Message);
+        }
+    }
+
     [HttpPost]
     public async Task<ActionResult<BookDto>> Add(CreateBookDto dto,CancellationToken cancellationToken)
     {

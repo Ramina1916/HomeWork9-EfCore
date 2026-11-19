@@ -127,6 +127,46 @@ public class BookService(BookStoreDbContext dbContext) : IBookService
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<PagedResult<BookDto>> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    {
+        if (pageNumber < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(pageNumber));
+        }
+
+        if (pageSize is < 1 or > 100)
+        {
+            throw new ArgumentOutOfRangeException(nameof(pageSize));
+        }
+
+        var totalCount = await dbContext.Books.CountAsync(cancellationToken);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        var books = await dbContext.Books
+            .AsNoTracking()
+            .OrderBy(book => book.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(book => new BookDto(
+                book.Id,
+                book.Title,
+                book.Isbn,
+                book.Description,
+                book.Price,
+                book.Stock,
+                book.PageCount,
+                book.PublishedYear,
+                book.CoverImageUrl,
+                book.CreatedAt))
+            .ToListAsync(cancellationToken);
+
+        return new PagedResult<BookDto>(
+            books,
+            pageNumber,
+            pageSize,
+            totalCount,
+            totalPages);
+    }
 
 }
 
